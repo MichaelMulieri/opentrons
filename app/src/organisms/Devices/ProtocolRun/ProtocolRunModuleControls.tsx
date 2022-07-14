@@ -1,17 +1,21 @@
 import * as React from 'react'
 import {
+  COLORS,
   DIRECTION_COLUMN,
   Flex,
   JUSTIFY_START,
   SPACING,
   WRAP,
+  JUSTIFY_CENTER,
 } from '@opentrons/components'
+import { useCreateCommandMutation } from '@opentrons/react-api-client'
+import { useTranslation } from 'react-i18next'
+import { StyledText } from '../../../atoms/text'
 import { ModuleCard } from '../../ModuleCard'
 import {
   useModuleRenderInfoForProtocolById,
   useProtocolDetailsForRun,
 } from '../hooks'
-import { useCreateCommandMutation } from '@opentrons/react-api-client'
 
 import type { LoadModuleRunTimeCommand } from '@opentrons/shared-data/protocol/types/schemaV6/command/setup'
 import type { RunTimeCommand } from '@opentrons/shared-data'
@@ -24,7 +28,8 @@ interface ProtocolRunModuleControlsProps {
 export const ProtocolRunModuleControls = ({
   robotName,
   runId,
-}: ProtocolRunModuleControlsProps): JSX.Element | null => {
+}: ProtocolRunModuleControlsProps): JSX.Element => {
+  const { t } = useTranslation('protocol_details')
   const moduleRenderInfoForProtocolById = useModuleRenderInfoForProtocolById(
     robotName,
     runId
@@ -32,10 +37,8 @@ export const ProtocolRunModuleControls = ({
   const attachedModules = Object.values(moduleRenderInfoForProtocolById).filter(
     module => module.attachedModuleMatch != null
   )
-
   const { protocolData } = useProtocolDetailsForRun(runId)
   const { createCommand } = useCreateCommandMutation()
-
   const loadCommands: LoadModuleRunTimeCommand[] =
     protocolData !== null
       ? protocolData?.commands.filter(
@@ -68,7 +71,17 @@ export const ProtocolRunModuleControls = ({
     }
   }, [])
 
-  return (
+  return attachedModules.length === 0 ? (
+    <Flex justifyContent={JUSTIFY_CENTER}>
+      <StyledText
+        as="p"
+        color={COLORS.darkGreyEnabled}
+        marginY={SPACING.spacing4}
+      >
+        {t('connect_modules_to_see_controls')}
+      </StyledText>
+    </Flex>
+  ) : (
     <Flex
       width={attachedModules.length === 1 ? '100%' : '50%'}
       justifyContent={JUSTIFY_START}
